@@ -45,8 +45,7 @@ import typescript from "@rollup/plugin-typescript";
 import dts from "rollup-plugin-dts";
 import terser from "@rollup/plugin-terser";
 import peerDepsExternal from "rollup-plugin-peer-deps-external";
-
-const packageJson = require("./package.json");
+import postcss from "rollup-plugin-postcss";
 
 const components = [
   { name: "Button", entry: "src/index.ts" },
@@ -58,7 +57,7 @@ function createComponentConfig(component) {
     input: component.entry,
     output: [
       {
-        file: `dist/${component.name.toLowerCase()}.esm.js`,
+        file: `dist/${component.name.toLowerCase()}.cjs`,
         format: "esm",
         sourcemap: true,
       },
@@ -69,16 +68,19 @@ function createComponentConfig(component) {
       resolve(),
       commonjs(),
       terser(),
+      postcss({
+        extract: true,
+        modules: true,
+      }),
     ],
   };
 }
 
 const rollupConfigs = components.map(createComponentConfig);
 
-// Add the TypeScript declaration generation config
 rollupConfigs.push({
-  input: "dist/cjs/types/src/index.d.ts",
-  output: [{ file: "dist/index.d.ts", format: "esm" }],
+  input: "dist/types/src/index.d.ts",
+  output: [{ file: "dist/index.d.ts", format: "cjs" }],
   plugins: [dts.default()],
   external: [/\.css$/],
 });
